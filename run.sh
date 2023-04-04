@@ -1527,6 +1527,17 @@ install_phpmyadmin(){
     unzip phpMyAdmin-${PHPMYADMIN}-all-languages.zip
     mv phpMyAdmin-${PHPMYADMIN}-all-languages phpmyadmin
     rm -rf phpMyAdmin-${PHPMYADMIN}-all-languages.zip
+    cd /var/www/pterodactyl/public/phpmyadmin/themes
+    wget https://files.phpmyadmin.net/themes/boodark/1.0.1/boodark-1.0.1.zip
+    unzip boodark-1.0.1.zip
+    rm -rf boodark-1.0.1.zip
+    wget https://files.phpmyadmin.net/themes/blueberry/1.1.0/blueberry-1.1.0.zip
+    unzip blueberry-1.1.0.zip
+    rm -rf blueberry-1.1.0.zip
+    wget https://files.phpmyadmin.net/themes/darkwolf/5.2/darkwolf-5.2.zip
+    unzip darkwolf-5.2.zip
+    rm -rf darkwolf-5.2.zip
+    
     cd /var/www/pterodactyl/public/phpmyadmin
 
     SERVER_IP=$(curl -s http://checkip.amazonaws.com)
