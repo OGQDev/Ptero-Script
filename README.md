@@ -4,8 +4,9 @@ Comandos:
 
 1: apt update -y
 
-2: apt install curl
+2: apt upgrade -y
 
-3: bash <(curl -s https://raw.githubusercontent.com/Fl1PY-DEV/Ptero-Script/main/run.sh)
+3: apt install curl
 
-4: sudo apt update
+4: bash <(curl -s https://raw.githubusercontent.com/Fl1PY-DEV/Ptero-Script/main/run.sh)
+
