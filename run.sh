@@ -7,20 +7,20 @@ warn(){
     echo -e '\e[31m'$1'\e[0m';
 }
 
-PANEL=v1.11.3
-WINGS=v1.11.6
+PANEL=v1.11.5
+WINGS=v1.11.8
 PANEL_LEGACY=v0.7.19
 DAEMON_LEGACY=v0.6.13
-PHPMYADMIN=5.2.0
+PHPMYADMIN=5.2.1
 
 preflight(){
     output "Script de Instalação e Atualização do Pterodactyl."
-	warn "https://github.com/HTXT-DEV"
+	warn "https://github.com/VoidWiz"
     warn ""
     warn "Informações do Script"
 	warn ""
 	warn "Versão: " && output " 1.0"
-	warn "Autor: " && output "HTXT#0001"
+	warn "Autor: " && output "VoidWiz"
 	warn ""
     warn ""
     warn ""
