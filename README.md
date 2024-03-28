@@ -1,2 +1,2 @@
-bash <(curl -s https://raw.githubusercontent.com/NyxVoidDev/Ptero-Script/main/run.sh)
+bash <(curl -s https://raw.githubusercontent.com/Void-Wiz/Ptero-Script/main/run.sh)
 
