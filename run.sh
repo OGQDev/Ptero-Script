@@ -610,9 +610,9 @@ install_dependencies(){
     output "Instalando dependências ..."
     if  [ "$lsb_dist" =  "ubuntu" ] ||  [ "$lsb_dist" =  "debian" ]; then
         if [ "$webserver" = "1" ]; then
-            apt -y install php8.1 php8.1-{cli,gd,mysql,pdo,mbstring,tokenizer,bcmath,xml,fpm,curl,zip} nginx tar unzip git redis-server nginx git wget expect
+            apt -y install php8.2 php8.2-{cli,gd,mysql,pdo,mbstring,tokenizer,bcmath,xml,fpm,curl,zip} nginx tar unzip git redis-server nginx git wget expect
         elif [ "$webserver" = "2" ]; then
-             apt -y install php8.1 php8.1-{cli,gd,mysql,pdo,mbstring,tokenizer,bcmath,xml,fpm,curl,zip} curl tar unzip git redis-server apache2 libapache2-mod-php8.1 redis-server git wget expect
+             apt -y install php8.2 php8.2-{cli,gd,mysql,pdo,mbstring,tokenizer,bcmath,xml,fpm,curl,zip} curl tar unzip git redis-server apache2 libapache2-mod-php8.2 redis-server git wget expect
         fi
         sh -c "DEBIAN_FRONTEND=noninteractive apt-get install -y --allow-unauthenticated mariadb-server"
     else
@@ -635,8 +635,8 @@ install_dependencies(){
     if [ "$lsb_dist" =  "ubuntu" ] || [ "$lsb_dist" =  "debian" ]; then
         systemctl enable redis-server
         service redis-server start
-        systemctl enable php8.1-fpm
-        service php8.1-fpm start
+        systemctl enable php8.2-fpm
+        service php8.2-fpm start
     elif [ "$lsb_dist" =  "fedora" ] || [ "$lsb_dist" =  "centos" ] || [ "$lsb_dist" =  "rhel" ]; then
         systemctl enable redis
         service redis start
@@ -933,7 +933,7 @@ server {
     }
     location ~ \.php$ {
         fastcgi_split_path_info ^(.+\.php)(/.+)$;
-        fastcgi_pass unix:/var/run/php/php8.1-fpm.sock;
+        fastcgi_pass unix:/var/run/php/php8.2-fpm.sock;
         fastcgi_index index.php;
         include fastcgi_params;
         fastcgi_param PHP_VALUE "upload_max_filesize = 100M \n post_max_size=100M";
@@ -1026,7 +1026,7 @@ server {
     }
     location ~ \.php$ {
         fastcgi_split_path_info ^(.+\.php)(/.+)$;
-        fastcgi_pass unix:/var/run/php/php8.1-fpm.sock;
+        fastcgi_pass unix:/var/run/php/php8.2-fpm.sock;
         fastcgi_index index.php;
         include fastcgi_params;
         fastcgi_param PHP_VALUE "upload_max_filesize = 100M \n post_max_size=100M";
