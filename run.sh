@@ -182,16 +182,80 @@ install_panel() {
     chmod -R 755 storage/* bootstrap/cache/
     
     # Setup environment first
-    cp .env.example .env
+    if [[ -f .env.example ]]; then
+        cp .env.example .env
+    else
+        # Create minimal .env file if .env.example doesn't exist
+        touch .env
+    fi
     
-    # Generate a temporary app key to avoid encryption errors during composer install
+    # Generate a proper app key and ensure it's set correctly
     APP_KEY=$(php -r "echo 'base64:'.base64_encode(random_bytes(32));")
-    sed -i "s|APP_KEY=.*|APP_KEY=${APP_KEY}|g" .env
+    
+    # Ensure we have a proper .env file with required settings
+    cat > .env << EOF
+APP_NAME=Pterodactyl
+APP_ENV=production
+APP_KEY=${APP_KEY}
+APP_DEBUG=false
+APP_URL=http://localhost
+APP_TIMEZONE=UTC
+
+LOG_CHANNEL=stack
+LOG_DEPRECATIONS_CHANNEL=null
+LOG_LEVEL=debug
+
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=pterodactyl
+DB_USERNAME=pterodactyl
+DB_PASSWORD=
+
+BROADCAST_DRIVER=log
+CACHE_DRIVER=file
+FILESYSTEM_DRIVER=local
+QUEUE_CONNECTION=sync
+SESSION_DRIVER=file
+SESSION_LIFETIME=120
+
+MEMCACHED_HOST=127.0.0.1
+
+REDIS_HOST=127.0.0.1
+REDIS_PASSWORD=null
+REDIS_PORT=6379
+
+MAIL_MAILER=smtp
+MAIL_HOST=mailhog
+MAIL_PORT=1025
+MAIL_USERNAME=null
+MAIL_PASSWORD=null
+MAIL_ENCRYPTION=null
+MAIL_FROM_ADDRESS=null
+MAIL_FROM_NAME="\${APP_NAME}"
+
+AWS_ACCESS_KEY_ID=
+AWS_SECRET_ACCESS_KEY=
+AWS_DEFAULT_REGION=us-east-1
+AWS_BUCKET=
+AWS_USE_PATH_STYLE_ENDPOINT=false
+
+PUSHER_APP_ID=
+PUSHER_APP_KEY=
+PUSHER_APP_SECRET=
+PUSHER_APP_CLUSTER=mt1
+
+MIX_PUSHER_APP_KEY="\${PUSHER_APP_KEY}"
+MIX_PUSHER_APP_CLUSTER="\${PUSHER_APP_CLUSTER}"
+EOF
+    
+    # Export the APP_KEY as environment variable as backup
+    export APP_KEY="${APP_KEY}"
     
     # Install composer dependencies
     composer install --no-dev --optimize-autoloader
     
-    # Generate the final application key
+    # Generate the final application key (this will overwrite the temporary one)
     php artisan key:generate --force
     
     # Configure environment
