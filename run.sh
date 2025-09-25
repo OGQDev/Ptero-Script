@@ -20,7 +20,7 @@ preflight(){
     warn "Informações do Script"
 	warn ""
 	warn "Versão: " && output " 1.0"
-	warn "Autor: " && output "VoidWiz"
+	warn "Autor: " && output "OGQ"
 	warn ""
     warn ""
     warn ""
