@@ -112,6 +112,26 @@ configure_mariadb() {
         print_warning "Please run 'mysql_secure_installation' after the script completes to secure MariaDB."
     fi
     
+    # Check if MariaDB root password is set
+    echo -e "${CYAN}MariaDB Configuration:${NC}"
+    read -s -p "Enter MariaDB root password (leave empty if not set): " mysql_root_password
+    echo
+    
+    # Set MySQL command based on whether root password is set
+    if [[ -z "$mysql_root_password" ]]; then
+        if [[ "$RUNNING_AS_ROOT" == "true" ]]; then
+            MYSQL_CMD="mysql -u root"
+        else
+            MYSQL_CMD="sudo mysql -u root"
+        fi
+    else
+        if [[ "$RUNNING_AS_ROOT" == "true" ]]; then
+            MYSQL_CMD="mysql -u root -p$mysql_root_password"
+        else
+            MYSQL_CMD="sudo mysql -u root -p$mysql_root_password"
+        fi
+    fi
+    
     # Create database and user for Pterodactyl
     echo -e "${CYAN}Please enter the following database information:${NC}"
     read -p "Database name [pterodactyl]: " db_name
@@ -123,23 +143,22 @@ configure_mariadb() {
     read -s -p "Database password: " db_password
     echo
     
-    if [[ "$RUNNING_AS_ROOT" == "true" ]]; then
-        mysql -u root <<EOF
-CREATE DATABASE ${db_name};
-CREATE USER '${db_user}'@'127.0.0.1' IDENTIFIED BY '${db_password}';
+    # Check if database exists and handle accordingly
+    print_status "Configuring database..."
+    
+    $MYSQL_CMD <<EOF
+CREATE DATABASE IF NOT EXISTS ${db_name};
+CREATE USER IF NOT EXISTS '${db_user}'@'127.0.0.1' IDENTIFIED BY '${db_password}';
 GRANT ALL PRIVILEGES ON ${db_name}.* TO '${db_user}'@'127.0.0.1';
 FLUSH PRIVILEGES;
 EOF
-    else
-        sudo mysql -u root <<EOF
-CREATE DATABASE ${db_name};
-CREATE USER '${db_user}'@'127.0.0.1' IDENTIFIED BY '${db_password}';
-GRANT ALL PRIVILEGES ON ${db_name}.* TO '${db_user}'@'127.0.0.1';
-FLUSH PRIVILEGES;
-EOF
-    fi
 
-    print_status "Database created successfully!"
+    if [ $? -eq 0 ]; then
+        print_status "Database configured successfully!"
+    else
+        print_error "Failed to configure database. Please check your MariaDB root password."
+        exit 1
+    fi
 }
 
 # Function to install Composer
