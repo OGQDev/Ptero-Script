@@ -1,9 +1,4 @@
 #!/bin/bash
-
-# Language variables
-LANG_SELECTED=""
-
-# Language functions
 output(){
     echo -e '\e[37m'$1'\e[0m';
 }
@@ -12,152 +7,44 @@ warn(){
     echo -e '\e[31m'$1'\e[0m';
 }
 
-# Language selector
-select_language(){
-    echo -e '\e[37mSelect your language / Sélectionnez votre langue / Selecione seu idioma:\e[0m'
-    echo -e '\e[37m[1] English\e[0m'
-    echo -e '\e[37m[2] Português\e[0m'
-    echo -e '\e[37m[3] Français\e[0m'
-    
-    read lang_choice
-    case $lang_choice in
-        1 ) LANG_SELECTED="en"
-            output "English selected."
-            ;;
-        2 ) LANG_SELECTED="pt"
-            output "Português selecionado."
-            ;;
-        3 ) LANG_SELECTED="fr"
-            output "Français sélectionné."
-            ;;
-        * ) output "Invalid selection. Defaulting to English."
-            LANG_SELECTED="en"
-    esac
-}
-
-# Multi-language text function
-get_text(){
-    local key=$1
-    case $LANG_SELECTED in
-        "pt")
-            case $key in
-                "script_title") echo "Script de Instalação e Atualização do Pterodactyl." ;;
-                "script_info") echo "Informações do Script" ;;
-                "version") echo "Versão: " ;;
-                "author") echo "Autor: " ;;
-                "warning_fresh") echo "Observe que este script deve ser instalado em um novo sistema operacional. Instalá-lo em um sistema operacional não novo pode causar problemas." ;;
-                "auto_detect_os") echo "Detecção automática do sistema operacional inicializada..." ;;
-                "run_as_root") echo "Por favor, execute como root." ;;
-                "arch_detect") echo "Detecção automática de arquitetura inicializada ..." ;;
-                "arch_64_ok") echo "Servidor de 64 bits detectado! Bom para ir." ;;
-                "arch_unsupported") echo "Arquitetura não suportada detectada! Mude para 64 bits (x86_64)." ;;
-                "virt_detect") echo "Detecção automática de virtualização inicializada..." ;;
-                "select_install_option") echo "Selecione sua opção de instalação:" ;;
-                "install_panel") echo "Instalar o Painel" ;;
-                "install_wings") echo "Instalar o Wings" ;;
-                "install_panel_wings") echo "Instalar o Painel e o Wings" ;;
-                "install_phpmyadmin") echo "Instale ou atualize para phpMyAdmin" ;;
-                "mariadb_reset") echo "Redefinição de senha raiz de emergência MariaDB" ;;
-                "database_host_reset") echo "Redefinição das informações do host do banco de dados de emergência" ;;
-                "latest_updates") echo "Últimas Atualizações" ;;
-                "invalid_selection") echo "Você não inseriu uma seleção válida." ;;
-                "use_after_panel") echo "Só use isso depois de instalar o painel" ;;
-                *) echo $key ;;
-            esac
-            ;;
-        "fr")
-            case $key in
-                "script_title") echo "Script d'Installation et de Mise à Jour de Pterodactyl." ;;
-                "script_info") echo "Informations du Script" ;;
-                "version") echo "Version: " ;;
-                "author") echo "Auteur: " ;;
-                "warning_fresh") echo "Notez que ce script doit être installé sur un nouveau système d'exploitation. L'installer sur un système non neuf peut causer des problèmes." ;;
-                "auto_detect_os") echo "Détection automatique du système d'exploitation initialisée..." ;;
-                "run_as_root") echo "Veuillez exécuter en tant que root." ;;
-                "arch_detect") echo "Détection automatique de l'architecture initialisée ..." ;;
-                "arch_64_ok") echo "Serveur 64 bits détecté! Prêt à continuer." ;;
-                "arch_unsupported") echo "Architecture non supportée détectée! Changez pour 64 bits (x86_64)." ;;
-                "virt_detect") echo "Détection automatique de la virtualisation initialisée..." ;;
-                "select_install_option") echo "Sélectionnez votre option d'installation:" ;;
-                "install_panel") echo "Installer le Panneau" ;;
-                "install_wings") echo "Installer Wings" ;;
-                "install_panel_wings") echo "Installer le Panneau et Wings" ;;
-                "install_phpmyadmin") echo "Installer ou mettre à jour phpMyAdmin" ;;
-                "mariadb_reset") echo "Réinitialisation d'urgence du mot de passe root MariaDB" ;;
-                "database_host_reset") echo "Réinitialisation des informations de l'hôte de base de données d'urgence" ;;
-                "latest_updates") echo "Dernières Mises à Jour" ;;
-                "invalid_selection") echo "Vous n'avez pas entré une sélection valide." ;;
-                "use_after_panel") echo "À utiliser uniquement après l'installation du panneau" ;;
-                *) echo $key ;;
-            esac
-            ;;
-        *)
-            case $key in
-                "script_title") echo "Pterodactyl Installation and Update Script." ;;
-                "script_info") echo "Script Information" ;;
-                "version") echo "Version: " ;;
-                "author") echo "Author: " ;;
-                "warning_fresh") echo "Note that this script should be installed on a fresh operating system. Installing it on a non-fresh OS may cause issues." ;;
-                "auto_detect_os") echo "Automatic OS detection initialized..." ;;
-                "run_as_root") echo "Please run as root." ;;
-                "arch_detect") echo "Automatic architecture detection initialized ..." ;;
-                "arch_64_ok") echo "64-bit server detected! Good to go." ;;
-                "arch_unsupported") echo "Unsupported architecture detected! Switch to 64-bit (x86_64)." ;;
-                "virt_detect") echo "Automatic virtualization detection initialized..." ;;
-                "select_install_option") echo "Select your installation option:" ;;
-                "install_panel") echo "Install Panel" ;;
-                "install_wings") echo "Install Wings" ;;
-                "install_panel_wings") echo "Install Panel and Wings" ;;
-                "install_phpmyadmin") echo "Install or update phpMyAdmin" ;;
-                "mariadb_reset") echo "MariaDB emergency root password reset" ;;
-                "database_host_reset") echo "Emergency database host information reset" ;;
-                "latest_updates") echo "Latest Updates" ;;
-                "invalid_selection") echo "You did not enter a valid selection." ;;
-                "use_after_panel") echo "Only use this after installing the panel" ;;
-                *) echo $key ;;
-            esac
-            ;;
-    esac
-}
-
-PANEL=v1.11.11
+PANEL=v1.11.10
 WINGS=v1.11.13
-PHPMYADMIN=5.2.2
+PANEL_LEGACY=v0.7.19
+DAEMON_LEGACY=v0.6.13
+PHPMYADMIN=5.2.1
 
 preflight(){
-    select_language
-    
-    output "$(get_text "script_title")"
+    output "Script de Instalação e Atualização do Pterodactyl."
 	warn "https://github.com/OGQDev"
     warn ""
-    warn "$(get_text "script_info")"
+    warn "Informações do Script"
 	warn ""
-	warn "$(get_text "version")" && output " 1.0"
-	warn "$(get_text "author")" && output "OGQ"
+	warn "Versão: " && output " 1.0"
+	warn "Autor: " && output "OGQ"
 	warn ""
     warn ""
     warn ""
-    output "$(get_text "warning_fresh")"
-    output "$(get_text "auto_detect_os")"
+    output "Observe que este script deve ser instalado em um novo sistema operacional. Instalá-lo em um sistema operacional não novo pode causar problemas."
+    output "Detecção automática do sistema operacional inicializada..."
 
     os_check
 
     if [ "$EUID" -ne 0 ]; then
-        output "$(get_text "run_as_root")"
+        output "Por favor, execute como root."
         exit 3
     fi
 
-    output "$(get_text "arch_detect")"
+    output "Detecção automática de arquitetura inicializada ..."
     MACHINE_TYPE=`uname -m`
     if [ ${MACHINE_TYPE} == 'x86_64' ]; then
-        output "$(get_text "arch_64_ok")"
+        output "Servidor de 64 bits detectado! Bom para ir."
         output ""
     else
-        output "$(get_text "arch_unsupported")"
+        output "Arquitetura não suportada detectada! Mude para 64 bits (x86_64)."
         exit 4
     fi
 
-    output "$(get_text "virt_detect")"
+    output "Detecção automática de virtualização inicializada..."
     if [ "$lsb_dist" =  "ubuntu" ]; then
         apt-get update --fix-missing
         apt-get -y install software-properties-common
@@ -240,326 +127,289 @@ os_check(){
     fi
     
     if [ "$lsb_dist" =  "ubuntu" ]; then
-        if  [ "$dist_version" != "24.04" ] && [ "$dist_version" != "22.04" ] && [ "$dist_version" != "20.04" ] && [ "$dist_version" != "18.04" ]; then
-            if [ "$LANG_SELECTED" = "pt" ]; then
-                output "Versão não suportada do Ubuntu. Apenas Ubuntu 24.04, 22.04, 20.04 e 18.04 são suportados."
-            elif [ "$LANG_SELECTED" = "fr" ]; then
-                output "Version Ubuntu non supportée. Seuls Ubuntu 24.04, 22.04, 20.04 et 18.04 sont supportés."
-            else
-                output "Unsupported Ubuntu version. Only Ubuntu 24.04, 22.04, 20.04, and 18.04 are supported."
-            fi
+        if  [ "$dist_version" != "20.04" ] && [ "$dist_version" != "18.04" ]; then
+            output "Versão não suportada do Ubuntu. Apenas Ubuntu 20.04 e 18.04 são suportados."
             exit 2
         fi
     elif [ "$lsb_dist" = "debian" ]; then
         if [ "$dist_version" != "10" ]; then
-            if [ "$LANG_SELECTED" = "pt" ]; then
-                output "Versão Debian não suportada. Apenas Debian 10 é suportado."
-            elif [ "$LANG_SELECTED" = "fr" ]; then
-                output "Version Debian non supportée. Seul Debian 10 est supporté."
-            else
-                output "Unsupported Debian version. Only Debian 10 is supported."
-            fi
+            output "Versão Debian não suportada. Apenas Debian 10 é suportado."
             exit 2
         fi
     elif [ "$lsb_dist" = "fedora" ]; then
         if [ "$dist_version" != "33" ] && [ "$dist_version" != "32" ]; then
-            if [ "$LANG_SELECTED" = "pt" ]; then
-                output "Versão não suportada do Fedora. Apenas Fedora 33 e 32 são suportados."
-            elif [ "$LANG_SELECTED" = "fr" ]; then
-                output "Version Fedora non supportée. Seuls Fedora 33 et 32 sont supportés."
-            else
-                output "Unsupported Fedora version. Only Fedora 33 and 32 are supported."
-            fi
+            output "Versão não suportada do Fedora. Apenas Fedora 33 e 32 são suportados."
             exit 2
         fi
     elif [ "$lsb_dist" = "centos" ]; then
         if [ "$dist_version" != "8" ]; then
-            if [ "$LANG_SELECTED" = "pt" ]; then
-                output "Versão CentOS não suportada. Apenas CentOS Stream e 8 são suportados."
-            elif [ "$LANG_SELECTED" = "fr" ]; then
-                output "Version CentOS non supportée. Seuls CentOS Stream et 8 sont supportés."
-            else
-                output "Unsupported CentOS version. Only CentOS Stream and 8 are supported."
-            fi
+            output "Versão CentOS não suportada. Apenas CentOS Stream e 8 são suportados."
             exit 2
         fi
     elif [ "$lsb_dist" = "rhel" ]; then
         if  [ $dist_version != "8" ]; then
-            if [ "$LANG_SELECTED" = "pt" ]; then
-                output "Versão RHEL não suportada. Apenas RHEL 8 é compatível."
-            elif [ "$LANG_SELECTED" = "fr" ]; then
-                output "Version RHEL non supportée. Seul RHEL 8 est compatible."
-            else
-                output "Unsupported RHEL version. Only RHEL 8 is compatible."
-            fi
+            output "Versão RHEL não suportada. Apenas RHEL 8 é compatível."
             exit 2
         fi
     elif [ "$lsb_dist" != "ubuntu" ] && [ "$lsb_dist" != "debian" ] && [ "$lsb_dist" != "centos" ]; then
-        if [ "$LANG_SELECTED" = "pt" ]; then
-            output "Sistema operacional não compatível."
-            output ""
-            output "Sistemas compatíveis:"
-            output "Ubuntu: 24.04, 22.04, 20.04, 18.04"
-            output "Debian: 10"
-            output "Fedora: 33, 32"
-            output "CentOS: 8, 7"
-            output "RHEL: 8"
-        elif [ "$LANG_SELECTED" = "fr" ]; then
-            output "Système d'exploitation non compatible."
-            output ""
-            output "Systèmes compatibles:"
-            output "Ubuntu: 24.04, 22.04, 20.04, 18.04"
-            output "Debian: 10"
-            output "Fedora: 33, 32"
-            output "CentOS: 8, 7"
-            output "RHEL: 8"
-        else
-            output "Incompatible operating system."
-            output ""
-            output "Compatible systems:"
-            output "Ubuntu: 24.04, 22.04, 20.04, 18.04"
-            output "Debian: 10"
-            output "Fedora: 33, 32"
-            output "CentOS: 8, 7"
-            output "RHEL: 8"
-        fi
+        output "Sistema operacional não compatível."
+        output ""
+        output "Sistemas compatível:"
+        output "Ubuntu: 20.04, 18.04"
+        output "Debian: 10"
+        output "Fedora: 33, 32"
+        output "CentOS: 8, 7"
+        output "RHEL: 8"
         exit 2
     fi
 }
 
 install_options(){
-    output "$(get_text "select_install_option")"
-    output "[1] $(get_text "install_panel") ${PANEL}."
-    output "[2] $(get_text "install_wings") ${WINGS}."
-    output "[3] $(get_text "install_panel_wings") ${PANEL} $(get_text "install_wings") ${WINGS}."
-    output "[4] $(get_text "install_phpmyadmin") (${PHPMYADMIN}) ($(get_text "use_after_panel"))."
-    output "[5] $(get_text "mariadb_reset")."
-    output "[6] $(get_text "database_host_reset")."
+    output "Selecione sua opção de instalação:"
+    output "[1] Instalar o Painel ${PANEL}."
+    output "[2] Instalar o Painel ${PANEL_LEGACY}."
+    output "[3] Instalar o Wings ${WINGS}."
+    output "[4] Instalar o Daemon ${DAEMON_LEGACY}."
+    output "[5] Instalar o Painel ${PANEL} e o Wings ${WINGS}."
+    output "[6] Instalar o Painel ${PANEL_LEGACY} e o Daemon ${DAEMON_LEGACY}."
+    output "[7] Instale o servidor SFTP autônomo."
+    output "[8] Atualizar o Painel (1.x) para a versão ${PANEL}."
+    output "[9] Atualizar o Painel (0.7.x) para a versão ${PANEL}."
+    output "[10] Atualizar o Painel (0.7.x) para a versão ${PANEL_LEGACY}."
+    output "[11] Atualizar o Daemon (0.6.x) para a versão ${DAEMON_LEGACY}."
+    output "[12] Migrando o Deamon para o Wings."
+    output "[13] Atualize o painel para ${PANEL} e migrar para Wings ${WINGS}"
+    output "[14] Uatualize o painel para ${PANEL_LEGACY} e o Daemon para ${DAEMON_LEGACY}"
+    output "[15] Atualize o servidor SFTP autônomo para (1.0.5)."
+    output "[16] Torne o Pterodactyl compatível com o aplicativo móvel (use-o apenas depois de instalar o painel - verifique https://pterodactyl.cloud para mais informações)."
+    output "[17] Atualize a compatibilidade móvel."
+    output "[18] Instale ou atualize para phpMyAdmin (${PHPMYADMIN}) (Só use isso depois de instalar o painel)."
+    output "[19] Instale um host de banco de dados independente (apenas para uso em instalações apenas daemon)."
+    output "[20] Alterar o tema do Painel (${PANEL_LEGACY} Apenas)."
+    output "[21] Redefinição de senha raiz de emergência MariaDB."
+    output "[22] Redefinição das informações do host do banco de dados de emergência."
+    output "[23] Alterar o URL do Painel. ( Lembrando, você deve reconfigurar o node. )"
     output " "
     output " "
     output " "
-    output "[0] $(get_text "latest_updates")"
+    output "[0] Ultimas Atualizações"
 
     read choice
     case $choice in
         1 ) installoption=1
-            if [ "$LANG_SELECTED" = "pt" ]; then
-                output "Você selecionou apenas a instalação de painel ${PANEL}."
-            elif [ "$LANG_SELECTED" = "fr" ]; then
-                output "Vous avez sélectionné l'installation du panneau ${PANEL} uniquement."
-            else
-                output "You selected panel ${PANEL} installation only."
-            fi
+            output "Você selecionou apenas a instalação de painel ${PANEL}."
             ;;
-        2 ) installoption=3
-            if [ "$LANG_SELECTED" = "pt" ]; then
-                output "Você selecionou apenas a instalação do Wings ${WINGS}."
-            elif [ "$LANG_SELECTED" = "fr" ]; then
-                output "Vous avez sélectionné l'installation de Wings ${WINGS} uniquement."
-            else
-                output "You selected Wings ${WINGS} installation only."
-            fi
+        2 ) installoption=2
+            output "Você selecionou a instalação do painel ${PANEL_LEGACY} apenas."
             ;;
-        3 ) installoption=5
-            if [ "$LANG_SELECTED" = "pt" ]; then
-                output "Você selecionou ${PANEL} painel e wings ${WINGS} instalação."
-            elif [ "$LANG_SELECTED" = "fr" ]; then
-                output "Vous avez sélectionné l'installation du panneau ${PANEL} et Wings ${WINGS}."
-            else
-                output "You selected ${PANEL} panel and Wings ${WINGS} installation."
-            fi
+        3 ) installoption=3
+            output "Você selecionou apenas a instalação do Wings ${WINGS}."
             ;;
-        4 ) installoption=18
-            if [ "$LANG_SELECTED" = "pt" ]; then
-                output "Você optou por instalar ou atualizar phpMyAdmin ${PHPMYADMIN}."
-            elif [ "$LANG_SELECTED" = "fr" ]; then
-                output "Vous avez choisi d'installer ou de mettre à jour phpMyAdmin ${PHPMYADMIN}."
-            else
-                output "You chose to install or update phpMyAdmin ${PHPMYADMIN}."
-            fi
+        4 ) installoption=4
+            output "Você selecionou apenas a instalação do daemon ${DAEMON_LEGACY}."
             ;;
-        5 ) installoption=21
-            if [ "$LANG_SELECTED" = "pt" ]; then
-                output "Você selecionou redefinição de senha de root do MariaDB."
-            elif [ "$LANG_SELECTED" = "fr" ]; then
-                output "Vous avez sélectionné la réinitialisation du mot de passe root MariaDB."
-            else
-                output "You selected MariaDB root password reset."
-            fi
+        5 ) installoption=5
+            output "Você selecionou ${PANEL} painel e wings ${WINGS} instalação."
             ;;
-        6 ) installoption=22
-            if [ "$LANG_SELECTED" = "pt" ]; then
-                output "Você selecionou redefinir as informações do Host do banco de dados."
-            elif [ "$LANG_SELECTED" = "fr" ]; then
-                output "Vous avez sélectionné la réinitialisation des informations de l'hôte de base de données."
-            else
-                output "You selected database host information reset."
-            fi
+        6 ) installoption=6
+            output "Você selecionou o painel ${PANEL_LEGACY} e a instalação do daemon."
+            ;;
+        7 ) installoption=7
+            output "Você optou por instalar o servidor SFTP autônomo."
+            ;;
+        8 ) installoption=8
+            output "Você optou por atualizar o painel para ${PANEL}."
+            ;;
+        9 ) installoption=9
+            output "Você optou por atualizar o painel para ${PANEL}."
+            ;;
+        10 ) installoption=10
+            output "Você optou por atualizar o painel para ${PANEL_LEGACY}."
+            ;;
+        11 ) installoption=11
+            output "Você optou por atualizar o daemon para ${DAEMON_LEGACY}."
+            ;;
+        12 ) installoption=12
+            output "Você optou por migrar o daemon ${DAEMON_LEGACY} para o wings ${WINGS}."
+            ;;
+        13 ) installoption=13
+            output "Você optou por atualizar o painel para ${PANEL} e migrar para as asas ${WINGS}."
+            ;;
+        14 ) installoption=14
+            output "Você optou por atualizar o painel para ${PANEL} e o daemon para ${DAEMON_LEGACY}."
+            ;;
+        15 ) installoption=15
+            output "Você optou por atualizar o SFTP autônomo."
+            ;;
+        16 ) installoption=16
+            output "Você ativou a compatibilidade do aplicativo móvel."
+            ;;
+        17 ) installoption=17
+            output "Você ativou a compatibilidade do aplicativo móvel"
+            ;;
+        18 ) installoption=18
+            output "Você optou por instalar ou atualizar phpMyAdmin ${PHPMYADMIN}."
+            ;;
+        19 ) installoption=19
+            output "Você optou por instalar um host de banco de dados."
+            ;;
+        20 ) installoption=20
+            output "Você optou por alterar apenas o tema do Pterodactyl ${PANEL_LEGACY}."
+            ;;
+        21 ) installoption=21
+            output "Você selecionou redefinição de senha de root do MariaDB."
+            ;;
+        22 ) installoption=22
+            output "Você selecionou redefinir as informações do Host do banco de dados."
+            ;;
+	23 ) installoption=23
+            output "Você Solicitou a troca do URL do painel!"
             ;;
         0 ) installoption=0
-            if [ "$LANG_SELECTED" = "pt" ]; then
-                output "Você optou por ver as logs!"
-            elif [ "$LANG_SELECTED" = "fr" ]; then
-                output "Vous avez choisi de voir les logs!"
-            else
-                output "You chose to view the logs!"
-            fi
+            output "Você optou por ver as logs!"
             ;;
-        * ) output "$(get_text "invalid_selection")"
+        * ) output "Você não inseriu uma seleção válida."
             install_options
     esac
 }
 
 logs(){
-    if [ "$LANG_SELECTED" = "pt" ]; then
-        warn "[05/02/2021]" 
-        warn "Tradução do Script"
-        warn "Adicionado Forma de ligar o node apos instalar o Wings ${WINGS}."
-        warn " "
-        warn "[07/02/2021]" 
-        warn "Adicionado troca de URL"
-        warn "Adicionado função de Logs"
-        warn " "
-        warn "[08/02/2021]" 
-        warn "Removido BUG do Pterodactyl v0.7.19"
-        warn "Adicionado sistema pare lhe redirecionar ao terminar uma Opção do Script."
-        warn " "
-        warn "[25/09/2025]"
-        warn "Adicionado seletor de idioma (Português, Inglês, Francês)"
-        warn "Remapeado números das opções para sequência contínua"
-        warn "Removidas opções obsoletas e legadas"
-    elif [ "$LANG_SELECTED" = "fr" ]; then
-        warn "[05/02/2021]" 
-        warn "Traduction du Script"
-        warn "Ajouté moyen de connecter le node après installation de Wings ${WINGS}."
-        warn " "
-        warn "[07/02/2021]" 
-        warn "Ajouté changement d'URL"
-        warn "Ajouté fonction de Logs"
-        warn " "
-        warn "[08/02/2021]" 
-        warn "Supprimé BUG de Pterodactyl v0.7.19"
-        warn "Ajouté système pour vous rediriger à la fin d'une Option du Script."
-        warn " "
-        warn "[25/09/2025]"
-        warn "Ajouté sélecteur de langue (Portugais, Anglais, Français)"
-        warn "Remappé les numéros d'options en séquence continue"
-        warn "Supprimé les options obsolètes et héritées"
-    else
-        warn "[05/02/2021]" 
-        warn "Script Translation"
-        warn "Added way to connect node after installing Wings ${WINGS}."
-        warn " "
-        warn "[07/02/2021]" 
-        warn "Added URL change"
-        warn "Added Logs function"
-        warn " "
-        warn "[08/02/2021]" 
-        warn "Removed Pterodactyl v0.7.19 BUG"
-        warn "Added system to redirect you when finishing a Script Option."
-        warn " "
-        warn "[25/09/2025]"
-        warn "Added language selector (Portuguese, English, French)"
-        warn "Remapped option numbers to continuous sequence"
-        warn "Removed obsolete and legacy options"
-    fi
+	warn "[05/02/2021]" 
+	warn "Tradução do Script"
+	warn "Adicionado Forma de ligar o node apos instalar o Wings ${WINGS}."
+	warn " "
+	warn "[07/02/2021]" 
+	warn "Adicionado troca de URL"
+	warn "Adicionado função de Logs"
+	warn " "
+	warn "[08/02/2021]" 
+	warn "Removido BUG do Pterodactyl ${PANEL_LEGACY}"
+	warn "Adicionado sistema pare lhe redirecionar ao terminar uma Opção do Script."
+	
 }
 webserver_options() {
-    if [ "$LANG_SELECTED" = "pt" ]; then
-        output "Selecione qual servidor web você gostaria de usar: \n[1] Nginx (recomendado). \n[2] Apache2/httpd."
-    elif [ "$LANG_SELECTED" = "fr" ]; then
-        output "Sélectionnez le serveur web que vous souhaitez utiliser: \n[1] Nginx (recommandé). \n[2] Apache2/httpd."
-    else
-        output "Select which web server you would like to use: \n[1] Nginx (recommended). \n[2] Apache2/httpd."
-    fi
-    
+    output "Selecione qual servidor web você gostaria de usar: \n[1] Nginx (recomendado). \n[2] Apache2/httpd."
     read choice
     case $choice in
         1 ) webserver=1
-            if [ "$LANG_SELECTED" = "pt" ]; then
-                output "Você selecionou Nginx."
-            elif [ "$LANG_SELECTED" = "fr" ]; then
-                output "Vous avez sélectionné Nginx."
-            else
-                output "You selected Nginx."
-            fi
+            output "Você selecionou Nginx."
             output ""
             ;;
         2 ) webserver=2
-            if [ "$LANG_SELECTED" = "pt" ]; then
-                output "Você selecionou Apache2 / httpd."
-            elif [ "$LANG_SELECTED" = "fr" ]; then
-                output "Vous avez sélectionné Apache2 / httpd."
-            else
-                output "You selected Apache2 / httpd."
-            fi
+            output "Você selecionou Apache2 / httpd."
             output ""
             ;;
-        * ) output "$(get_text "invalid_selection")"
+        * ) output "Você não inseriu uma seleção válida."
             webserver_options
     esac
 }
 
+theme_options() {
+    output "Gostaria de instalar um dos temas do Fonix?"
+    warn "ATÉ AGORA, A FONIX NÃO ATUALIZOU SEU TEMA PARA 0.7.19 PARA CORRIGIR A EXPLORAÇÃO XSS EM PTERODACTYL <= 0.7.18 AINDA. NÃO USE ESTES NA PRODUÇÃO. RECOMENDO ALTAMENTE QUE SELECIONE [1]."
+    output "[1] Não."
+    output "[2] Super rosa e fofo."
+    output "[3] Tango Twist."
+    output "[4] Tijolo Azul."
+    output "[5] Minecraft Madness."
+    output "[6] Lime Stitch."
+    output "[7] Macaco Vermelho."
+    output "[8] Espaço BlackEned."
+    output "[9] Nada além de grafite."
+    output ""
+    output "Você pode descobrir mais sobre os temas da Fonix aqui: https://github.com/TheFonix/Pterodactyl-Themes"
+    read choice
+    case $choice in
+        1 ) themeoption=1
+            output "Você optou por instalar o tema vanilla Pterodactyl."
+            output ""
+            ;;
+        2 ) themeoption=2
+            output "Você optou por instalar o tema Super rosa e fofo da Fonix."
+            output ""
+            ;;
+        3 ) themeoption=3
+            output "Você optou por instalar o tema Tango Twist da Fonix."
+            output ""
+            ;;
+        4 ) themeoption=4
+            output "Você optou por instalar o tema Tijolo Azul da Fonix."
+            output ""
+            ;;
+        5 ) themeoption=5
+            output "Você optou por instalar o tema Minecraft Madness da Fonix."
+            output ""
+            ;;
+        6 ) themeoption=6
+            output "Você optou por instalar o tema Lime Stitch da Fonix."
+            output ""
+            ;;
+        7 ) themeoption=7
+            output "Você optou por instalar o tema Macaco Vermelho da Fonix."
+            output ""
+            ;;
+        8 ) themeoption=8
+            output "Você optou por instalar o tema Espaço Preto da Fonix."
+            output ""
+            ;;
+        9 ) themeoption=9
+            output "Você optou por instalar o tema Nothing But Graphite da Fonix."
+            output ""
+            ;;
+        * ) output "Você não inseriu uma seleção válida."
+            theme_options
+    esac
+}
+
 required_infos() {
-    if [ "$LANG_SELECTED" = "pt" ]; then
-        output "Insira um email para o login no Painel"
-    elif [ "$LANG_SELECTED" = "fr" ]; then
-        output "Entrez un email pour la connexion au Panneau"
-    else
-        output "Enter an email for Panel login"
-    fi
+    output "Insira um email para o login no Painel"
     read email
     dns_check
 }
 
 dns_check(){
-    if [ "$LANG_SELECTED" = "pt" ]; then
-        output "Insira seu FQDN (panel.domain.tld):"
-    elif [ "$LANG_SELECTED" = "fr" ]; then
-        output "Entrez votre FQDN (panel.domain.tld):"
-    else
-        output "Enter your FQDN (panel.domain.tld):"
-    fi
+    output "Insira seu FQDN (panel.domain.tld):"
     read FQDN
 
-    if [ "$LANG_SELECTED" = "pt" ]; then
-        output "Resolvendo DNS ..."
-    elif [ "$LANG_SELECTED" = "fr" ]; then
-        output "Résolution DNS ..."
-    else
-        output "Resolving DNS ..."
-    fi
-    
+    output "Resolvendo DNS ..."
     SERVER_IP=$(curl -s http://checkip.amazonaws.com)
     DOMAIN_RECORD=$(dig +short ${FQDN})
     if [ "${SERVER_IP}" != "${DOMAIN_RECORD}" ]; then
         output ""
-        if [ "$LANG_SELECTED" = "pt" ]; then
-            output "O domínio inserido não resolve para o IP público primário deste servidor."
-            output "Faça um registro A apontando para o IP do seu servidor. Por exemplo, se você fizer um registro A chamado 'painel' apontando para o IP do seu servidor, seu FQDN é panel.domain.tld"
-            output "Se você estiver usando Cloudflare, desative a nuvem laranja."
-            output "Se você não tiver um domínio, pode obter um gratuitamente em https://freenom.com"
-        elif [ "$LANG_SELECTED" = "fr" ]; then
-            output "Le domaine saisi ne résout pas vers l'IP publique principale de ce serveur."
-            output "Créez un enregistrement A pointant vers l'IP de votre serveur. Par exemple, si vous créez un enregistrement A appelé 'panel' pointant vers l'IP de votre serveur, votre FQDN est panel.domain.tld"
-            output "Si vous utilisez Cloudflare, désactivez le nuage orange."
-            output "Si vous n'avez pas de domaine, vous pouvez en obtenir un gratuitement sur https://freenom.com"
-        else
-            output "The entered domain does not resolve to the primary public IP of this server."
-            output "Create an A record pointing to your server's IP. For example, if you create an A record called 'panel' pointing to your server's IP, your FQDN is panel.domain.tld"
-            output "If you are using Cloudflare, disable the orange cloud."
-            output "If you don't have a domain, you can get one for free at https://freenom.com"
-        fi
+        output "O domínio inserido não resolve para o IP público primário deste servidor."
+        output "Faça um registro A apontando para o IP do seu servidor. Por exemplo, se você fizer um registro A chamado 'painel' apontando para o IP do seu servidor, seu FQDN é panel.domain.tld"
+        output "Se você estiver usando Cloudflare, desative a nuvem laranja."
+        output "Se você não tiver um domínio, pode obter um gratuitamente em https://freenom.com"
         dns_check
     else
-        if [ "$LANG_SELECTED" = "pt" ]; then
-            output "Domínio resolvido corretamente. Bom para ir..."
-        elif [ "$LANG_SELECTED" = "fr" ]; then
-            output "Domaine résolu correctement. Prêt à continuer..."
-        else
-            output "Domain resolved correctly. Good to go..."
-        fi
+        output "Domínio resolvido corretamente. Bom para ir..."
     fi
+}
+
+theme() {
+    output "A instalação do tema foi inicializada ..."
+    cd /var/www/pterodactyl
+    if [ "$themeoption" = "1" ]; then
+        output "Mantendo o tema baunilha do Pterodáctilo."
+    elif [ "$themeoption" = "2" ]; then
+        curl https://raw.githubusercontent.com/TheFonix/Pterodactyl-Themes/master/MasterThemes/PinkAnFluffy/build.sh | sh
+    elif [ "$themeoption" = "3" ]; then
+        curl https://raw.githubusercontent.com/TheFonix/Pterodactyl-Themes/master/MasterThemes/TangoTwist/build.sh | sh
+    elif [ "$themeoption" = "4" ]; then
+        curl https://raw.githubusercontent.com/TheFonix/Pterodactyl-Themes/master/MasterThemes/BlueBrick/build.sh | sh
+    elif [ "$themeoption" = "5" ]; then
+        curl https://raw.githubusercontent.com/TheFonix/Pterodactyl-Themes/master/MasterThemes/MinecraftMadness/build.sh | sh
+    elif [ "$themeoption" = "6" ]; then
+        curl https://raw.githubusercontent.com/TheFonix/Pterodactyl-Themes/master/MasterThemes/LimeStitch/build.sh | sh
+    elif [ "$themeoption" = "7" ]; then
+        curl https://raw.githubusercontent.com/TheFonix/Pterodactyl-Themes/master/MasterThemes/RedApe/build.sh | sh
+    elif [ "$themeoption" = "8" ]; then
+        curl https://raw.githubusercontent.com/TheFonix/Pterodactyl-Themes/master/MasterThemes/BlackEndSpace/build.sh | sh
+    elif [ "$themeoption" = "9" ]; then
+        curl https://raw.githubusercontent.com/TheFonix/Pterodactyl-Themes/master/MasterThemes/NothingButGraphite/build.sh | sh
+    fi
+    php artisan view:clear
+    php artisan cache:clear
 }
 
 repositories_setup(){
@@ -574,7 +424,7 @@ repositories_setup(){
         if [ "$lsb_dist" =  "ubuntu" ]; then
             LC_ALL=C.UTF-8 add-apt-repository -y ppa:ondrej/php
             add-apt-repository -y ppa:chris-lea/redis-server
-            if [ "$dist_version" != "20.04" ] && [ "$dist_version" != "22.04" ] && [ "$dist_version" != "24.04" ]; then
+            if [ "$dist_version" != "20.04" ]; then
                 add-apt-repository -y ppa:certbot/certbot
                 add-apt-repository -y ppa:nginx/development
             fi
@@ -671,7 +521,7 @@ repositories_setup_0.7.19(){
         if [ "$lsb_dist" =  "ubuntu" ]; then
             LC_ALL=C.UTF-8 add-apt-repository -y ppa:ondrej/php
             add-apt-repository -y ppa:chris-lea/redis-server
-            if [ "$dist_version" != "20.04" ] && [ "$dist_version" != "22.04" ] && [ "$dist_version" != "24.04" ]; then
+            if [ "$dist_version" != "20.04" ]; then
                 add-apt-repository -y ppa:certbot/certbot
                 add-apt-repository -y ppa:nginx/development
             fi
@@ -1503,7 +1353,7 @@ install_daemon() {
     if  [ "$lsb_dist" =  "ubuntu" ] ||  [ "$lsb_dist" =  "debian" ]; then
         update-grub
         curl -sL https://deb.nodesource.com/setup_12.x | sudo bash -
-            if [ "$lsb_dist" =  "ubuntu" ] && ([ "$dist_version" = "20.04" ] || [ "$dist_version" = "22.04" ] || [ "$dist_version" = "24.04" ]); then
+            if [ "$lsb_dist" =  "ubuntu" ] && [ "$dist_version" = "20.04" ]; then
                 apt -y install nodejs make gcc g++
                 npm install node-gyp
             elif [ "$lsb_dist" =  "debian" ] && [ "$dist_version" = "10" ]; then
@@ -2186,6 +2036,9 @@ case $installoption in
 	     broadcast_database
 	     install_options
              ;;
+        2)   bash <(curl -s https://ragg.tech/Pterodactyl/dir/Legacy.sh)
+	install_options
+             ;;
         3)   repositories_setup
              required_infos
              firewall
@@ -2193,6 +2046,13 @@ case $installoption in
              install_wings
              broadcast
 	     broadcast_database
+             ;;
+        4)   repositories_setup_0.7.19
+             required_infos
+             firewall
+             ssl_certs
+             install_daemon
+             broadcast
              ;;
         5)   webserver_options
              repositories_setup
@@ -2204,15 +2064,73 @@ case $installoption in
              broadcast
 	     broadcast_database
              ;;
+        6)   https://ragg.tech/Pterodactyl/dir/Legacy.sh
+             repositories_setup_0.7.19
+             install_daemon
+             broadcast
+	     install_options
+             ;;
+        7)   install_standalone_sftp
+	install_options
+             ;;
+        8)   upgrade_pterodactyl
+	install_options
+             ;;
+        9)   upgrade_pterodactyl_1.0
+	install_options
+             ;;
+        10)  theme_options
+             upgrade_pterodactyl_0.7.19
+             theme
+	     install_options
+             ;;
+        11)  upgrade_daemon
+	install_options
+             ;;
+        12)  migrate_wings
+	install_options
+             ;;
+        13)  upgrade_pterodactyl_1.0
+             migrate_wings
+	     install_options
+             ;;
+        14)  theme_options
+             upgrade_pterodactyl_0.7.19
+             theme
+             upgrade_daemon
+	     install_options
+             ;;
+        15)  upgrade_standalone_sftp
+	install_options
+             ;;
+        16)  install_mobile
+	install_options
+             ;;
+        17)  upgrade_mobile
+	install_options
+             ;;
         18)  install_phpmyadmin
 	install_options
              ;;
+        19)  repositories_setup
+             install_database
+             ;;
+        20)  theme_options
+             if [ "$themeoption" = "1" ]; then
+             	upgrade_pterodactyl_0.7.19
+             fi
+             theme
+	     install_options
+            ;;
         21) curl -sSL https://raw.githubusercontent.com/tommytran732/MariaDB-Root-Password-Reset/master/mariadb-104.sh | sudo bash
 	install_options
             ;;
         22) database_host_reset
 	    install_options
             ;;
+        23) alterar
+	    install_options
+	    ;;
 	0) logs
 	    ;;
 esac
