@@ -7,7 +7,7 @@
 set -e  # Exit on any error
 
 # Global variables
-RUNNING_AS_ROOT=true
+RUNNING_AS_ROOT=false
 
 # Color definitions for output
 RED='\033[0;31m'
@@ -40,72 +40,11 @@ print_header() {
 # Function to check if running as root
 check_root() {
     if [[ $EUID -eq 0 ]]; then
-        print_warning "Running as root detected!"
-        print_warning "It's recommended to run this script as a regular user with sudo privileges."
-        echo ""
-        echo -e "${YELLOW}Options:${NC}"
-        echo -e "1) Continue as root (NOT RECOMMENDED)"
-        echo -e "2) Create a new user and run the script with that user (RECOMMENDED)"
-        echo -e "3) Exit and run manually with a non-root user"
-        echo ""
-        read -p "Please select an option [1-3]: " root_option
-        
-        case $root_option in
-            1)
-                print_warning "Continuing as root. This is not recommended for security reasons."
-                print_warning "The script will adapt some commands for root execution."
-                RUNNING_AS_ROOT=true
-                ;;
-            2)
-                create_user_and_rerun
-                ;;
-            3)
-                print_status "Exiting. Please create a non-root user and run the script again."
-                print_status "Example commands:"
-                print_status "  adduser pterodactyl"
-                print_status "  usermod -aG sudo pterodactyl"
-                print_status "  su - pterodactyl"
-                print_status "  # Then run the script again"
-                exit 0
-                ;;
-            *)
-                print_error "Invalid option selected."
-                exit 1
-                ;;
-        esac
+        RUNNING_AS_ROOT=true
+        print_status "Running as root user."
     else
         RUNNING_AS_ROOT=false
     fi
-}
-
-# Function to create a new user and rerun script
-create_user_and_rerun() {
-    print_status "Creating a new user for Pterodactyl installation..."
-    
-    read -p "Enter username for the new user [pterodactyl]: " new_user
-    new_user=${new_user:-pterodactyl}
-    
-    # Create user
-    if ! id "$new_user" &>/dev/null; then
-        adduser --gecos "" $new_user
-        usermod -aG sudo $new_user
-        print_status "User $new_user created and added to sudo group."
-    else
-        print_status "User $new_user already exists."
-        usermod -aG sudo $new_user
-    fi
-    
-    # Copy script to user's home directory
-    cp "$0" "/home/$new_user/pterodactyl-installer.sh"
-    chown $new_user:$new_user "/home/$new_user/pterodactyl-installer.sh"
-    chmod +x "/home/$new_user/pterodactyl-installer.sh"
-    
-    print_status "Script copied to /home/$new_user/pterodactyl-installer.sh"
-    print_status "Switching to user $new_user and running the script..."
-    
-    # Switch to the new user and run the script
-    su - $new_user -c "/home/$new_user/pterodactyl-installer.sh"
-    exit 0
 }
 
 # Function to check if user has sudo privileges
@@ -396,8 +335,13 @@ EOF
     fi
     
     print_warning "SSL certificate is not configured. Please install Let's Encrypt SSL after the installation:"
-    print_warning "sudo apt install certbot python3-certbot-nginx"
-    print_warning "sudo certbot --nginx -d $domain"
+    if [[ "$RUNNING_AS_ROOT" == "true" ]]; then
+        print_warning "apt install certbot python3-certbot-nginx"
+        print_warning "certbot --nginx -d $domain"
+    else
+        print_warning "sudo apt install certbot python3-certbot-nginx"
+        print_warning "sudo certbot --nginx -d $domain"
+    fi
 }
 
 # Function to install Docker (required for Wings)
@@ -596,11 +540,20 @@ show_post_install() {
     
     if [[ "$install_option" == "1" || "$install_option" == "3" ]]; then
         echo -e "1. Install SSL certificate:"
-        echo -e "   sudo apt install certbot python3-certbot-nginx"
-        echo -e "   sudo certbot --nginx -d $panel_domain"
+        if [[ "$RUNNING_AS_ROOT" == "true" ]]; then
+            echo -e "   apt install certbot python3-certbot-nginx"
+            echo -e "   certbot --nginx -d $panel_domain"
+        else
+            echo -e "   sudo apt install certbot python3-certbot-nginx"
+            echo -e "   sudo certbot --nginx -d $panel_domain"
+        fi
         echo ""
         echo -e "2. Secure MariaDB:"
-        echo -e "   sudo mysql_secure_installation"
+        if [[ "$RUNNING_AS_ROOT" == "true" ]]; then
+            echo -e "   mysql_secure_installation"
+        else
+            echo -e "   sudo mysql_secure_installation"
+        fi
         echo ""
     fi
     
@@ -608,12 +561,20 @@ show_post_install() {
         echo -e "3. Configure Wings:"
         echo -e "   - Create a node in your Panel"
         echo -e "   - Copy the auto-deploy command from Panel"
-        echo -e "   - Run: sudo systemctl start wings"
+        if [[ "$RUNNING_AS_ROOT" == "true" ]]; then
+            echo -e "   - Run: systemctl start wings"
+        else
+            echo -e "   - Run: sudo systemctl start wings"
+        fi
         echo ""
     fi
     
     echo -e "4. Reboot your server to ensure all services start properly:"
-    echo -e "   sudo reboot"
+    if [[ "$RUNNING_AS_ROOT" == "true" ]]; then
+        echo -e "   reboot"
+    else
+        echo -e "   sudo reboot"
+    fi
     echo ""
     
     print_status "Installation guide completed!"
