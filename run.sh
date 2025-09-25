@@ -243,18 +243,34 @@ install_panel() {
     print_status "Setting up environment..."
     if [[ "$RUNNING_AS_ROOT" == "true" ]]; then
         sudo -u www-data cp .env.example .env
+        # Verify .env file was created
+        if [[ -f "/var/www/pterodactyl/.env" ]]; then
+            print_status ".env file created successfully"
+        else
+            print_error "Failed to create .env file"
+            exit 1
+        fi
         sudo -u www-data php artisan key:generate --force
     else
         sudo -u www-data cp .env.example .env
+        # Verify .env file was created
+        if [[ -f "/var/www/pterodactyl/.env" ]]; then
+            print_status ".env file created successfully"
+        else
+            print_error "Failed to create .env file"
+            exit 1
+        fi
         sudo -u www-data php artisan key:generate --force
     fi
     
-    # Install dependencies AFTER .env is created
+    # Install dependencies AFTER .env is created (skip autoload dump to avoid artisan calls)
     print_status "Installing Panel dependencies..."
     if [[ "$RUNNING_AS_ROOT" == "true" ]]; then
-        sudo -u www-data composer install --no-dev --optimize-autoloader
+        sudo -u www-data composer install --no-dev --no-scripts
+        sudo -u www-data composer dump-autoload --optimize
     else
-        sudo -u www-data composer install --no-dev --optimize-autoloader
+        sudo -u www-data composer install --no-dev --no-scripts
+        sudo -u www-data composer dump-autoload --optimize
     fi
     
     # Fix permissions after composer install and .env creation
