@@ -1,2 +1,2 @@
-bash <(curl -s https://raw.githubusercontent.com/Void-Wiz/Ptero-Script/main/run.sh)
+bash <(curl -s https://raw.githubusercontent.com/OGQDev/Ptero-Script/main/run.sh)
 
