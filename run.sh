@@ -7,7 +7,7 @@
 set -e  # Exit on any error
 
 # Global variables
-RUNNING_AS_ROOT=false
+RUNNING_AS_ROOT=true
 
 # Color definitions for output
 RED='\033[0;31m'
