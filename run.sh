@@ -35,6 +35,27 @@ generate_password() {
     openssl rand -base64 32 | tr -d "=+/" | cut -c1-25
 }
 
+# Function to detect timezone
+detect_timezone() {
+    # Try to get timezone from system
+    if [[ -f /etc/timezone ]]; then
+        TIMEZONE=$(cat /etc/timezone)
+    elif [[ -L /etc/localtime ]]; then
+        TIMEZONE=$(readlink /etc/localtime | sed 's|/usr/share/zoneinfo/||')
+    else
+        # Fallback to UTC if detection fails
+        TIMEZONE="UTC"
+    fi
+    
+    # Validate timezone using PHP
+    if ! php -r "new DateTimeZone('$TIMEZONE');" 2>/dev/null; then
+        print_warning "Detected timezone '$TIMEZONE' is invalid, falling back to UTC"
+        TIMEZONE="UTC"
+    fi
+    
+    print_status "Auto-detected timezone: $TIMEZONE"
+}
+
 # Function to check if running as root
 check_root() {
     if [[ $EUID -ne 0 ]]; then
@@ -436,7 +457,10 @@ main() {
         echo ""
         read -p "Enter domain name (e.g., panel.example.com): " DOMAIN
         read -p "Enter email address: " EMAIL
-        read -p "Enter timezone (e.g., America/New_York): " TIMEZONE
+        
+        # Auto-detect timezone
+        detect_timezone
+        
         read -p "Enter admin username: " ADMIN_USERNAME
         read -p "Enter admin first name: " FIRST_NAME
         read -p "Enter admin last name: " LAST_NAME
