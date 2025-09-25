@@ -312,6 +312,10 @@ EOF
 configure_nginx_panel() {
     print_status "Configuring Nginx for Panel..."
     
+    # Remove any existing pterodactyl configurations to avoid conflicts
+    rm -f /etc/nginx/sites-enabled/pterodactyl.conf
+    rm -f /etc/nginx/sites-available/pterodactyl.conf
+    
     # Create initial HTTP-only configuration
     cat > /etc/nginx/sites-available/pterodactyl.conf << EOF
 server {
@@ -363,9 +367,48 @@ EOF
     ln -sf /etc/nginx/sites-available/pterodactyl.conf /etc/nginx/sites-enabled/pterodactyl.conf
     rm -f /etc/nginx/sites-enabled/default
     
-    # Test Nginx configuration
-    nginx -t
-    systemctl reload nginx
+    # Test Nginx configuration and handle errors
+    if nginx -t; then
+        print_status "Nginx configuration test passed"
+        systemctl reload nginx
+    else
+        print_error "Nginx configuration test failed. Checking for issues..."
+        
+        # If there are still SSL-related errors, disable SSL sites temporarily
+        print_status "Disabling all sites and restarting with basic configuration..."
+        rm -f /etc/nginx/sites-enabled/*
+        
+        # Create a very basic working configuration
+        cat > /etc/nginx/sites-available/pterodactyl-basic.conf << EOF
+server {
+    listen 80 default_server;
+    server_name _;
+    root /var/www/pterodactyl/public;
+    index index.php;
+    
+    location / {
+        try_files \$uri \$uri/ /index.php?\$query_string;
+    }
+    
+    location ~ \.php$ {
+        fastcgi_pass unix:/var/run/php/php8.1-fpm.sock;
+        fastcgi_index index.php;
+        include fastcgi_params;
+        fastcgi_param SCRIPT_FILENAME \$document_root\$fastcgi_script_name;
+    }
+}
+EOF
+        
+        ln -sf /etc/nginx/sites-available/pterodactyl-basic.conf /etc/nginx/sites-enabled/pterodactyl-basic.conf
+        
+        if nginx -t; then
+            print_status "Basic Nginx configuration working"
+            systemctl reload nginx
+        else
+            print_error "Critical Nginx configuration error. Please check manually."
+            exit 1
+        fi
+    fi
 }
 
 # Function to install SSL certificate
@@ -546,7 +589,15 @@ main() {
         install_panel_dependencies
         setup_database
         install_panel
+        
+        # Clean up any existing nginx configurations that might cause conflicts
+        print_status "Cleaning up existing Nginx configurations..."
+        systemctl stop nginx 2>/dev/null || true
+        
         configure_nginx_panel
+        
+        # Start nginx
+        systemctl start nginx
         
         # Ask about SSL
         read -p "Do you want to install SSL certificate with Let's Encrypt? (y/n): " INSTALL_SSL_CHOICE
