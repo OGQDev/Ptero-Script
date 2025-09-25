@@ -192,11 +192,21 @@ install_panel() {
         sudo chmod -R 755 storage/* bootstrap/cache/
     fi
     
-    # Set permissions
+    # Set initial permissions
     if [[ "$RUNNING_AS_ROOT" == "true" ]]; then
-        chown -R www-data:www-data /var/www/pterodactyl/*
+        chown -R www-data:www-data /var/www/pterodactyl/
+        chmod -R 755 /var/www/pterodactyl/
+        chmod -R 775 /var/www/pterodactyl/storage/ /var/www/pterodactyl/bootstrap/cache/
+        
+        # Ensure www-data can write to the entire directory for composer
+        chmod -R 775 /var/www/pterodactyl/
     else
-        sudo chown -R www-data:www-data /var/www/pterodactyl/*
+        sudo chown -R www-data:www-data /var/www/pterodactyl/
+        sudo chmod -R 755 /var/www/pterodactyl/
+        sudo chmod -R 775 /var/www/pterodactyl/storage/ /var/www/pterodactyl/bootstrap/cache/
+        
+        # Ensure www-data can write to the entire directory for composer
+        sudo chmod -R 775 /var/www/pterodactyl/
     fi
     
     # Install dependencies
@@ -205,6 +215,20 @@ install_panel() {
         sudo -u www-data composer install --no-dev --optimize-autoloader
     else
         sudo -u www-data composer install --no-dev --optimize-autoloader
+    fi
+    
+    # Fix permissions after composer install
+    print_status "Setting final permissions..."
+    if [[ "$RUNNING_AS_ROOT" == "true" ]]; then
+        chown -R www-data:www-data /var/www/pterodactyl/
+        chmod -R 755 /var/www/pterodactyl/
+        chmod -R 775 /var/www/pterodactyl/storage/ /var/www/pterodactyl/bootstrap/cache/
+        chmod 644 /var/www/pterodactyl/.env
+    else
+        sudo chown -R www-data:www-data /var/www/pterodactyl/
+        sudo chmod -R 755 /var/www/pterodactyl/
+        sudo chmod -R 775 /var/www/pterodactyl/storage/ /var/www/pterodactyl/bootstrap/cache/
+        sudo chmod 644 /var/www/pterodactyl/.env
     fi
     
     # Environment setup
