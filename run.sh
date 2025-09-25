@@ -15,7 +15,7 @@ PHPMYADMIN=5.2.1
 
 preflight(){
     output "Script de Instalação e Atualização do Pterodactyl."
-	warn "https://github.com/Void-Wiz"
+	warn "https://github.com/OGQDev"
     warn ""
     warn "Informações do Script"
 	warn ""
