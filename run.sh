@@ -6,6 +6,9 @@
 
 set -e  # Exit on any error
 
+# Global variables
+RUNNING_AS_ROOT=false
+
 # Color definitions for output
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -37,16 +40,87 @@ print_header() {
 # Function to check if running as root
 check_root() {
     if [[ $EUID -eq 0 ]]; then
-        print_error "This script should not be run as root for security reasons."
-        print_warning "Please run as a regular user with sudo privileges."
-        exit 1
+        print_warning "Running as root detected!"
+        print_warning "It's recommended to run this script as a regular user with sudo privileges."
+        echo ""
+        echo -e "${YELLOW}Options:${NC}"
+        echo -e "1) Continue as root (NOT RECOMMENDED)"
+        echo -e "2) Create a new user and run the script with that user (RECOMMENDED)"
+        echo -e "3) Exit and run manually with a non-root user"
+        echo ""
+        read -p "Please select an option [1-3]: " root_option
+        
+        case $root_option in
+            1)
+                print_warning "Continuing as root. This is not recommended for security reasons."
+                print_warning "The script will adapt some commands for root execution."
+                RUNNING_AS_ROOT=true
+                ;;
+            2)
+                create_user_and_rerun
+                ;;
+            3)
+                print_status "Exiting. Please create a non-root user and run the script again."
+                print_status "Example commands:"
+                print_status "  adduser pterodactyl"
+                print_status "  usermod -aG sudo pterodactyl"
+                print_status "  su - pterodactyl"
+                print_status "  # Then run the script again"
+                exit 0
+                ;;
+            *)
+                print_error "Invalid option selected."
+                exit 1
+                ;;
+        esac
+    else
+        RUNNING_AS_ROOT=false
     fi
+}
+
+# Function to create a new user and rerun script
+create_user_and_rerun() {
+    print_status "Creating a new user for Pterodactyl installation..."
+    
+    read -p "Enter username for the new user [pterodactyl]: " new_user
+    new_user=${new_user:-pterodactyl}
+    
+    # Create user
+    if ! id "$new_user" &>/dev/null; then
+        adduser --gecos "" $new_user
+        usermod -aG sudo $new_user
+        print_status "User $new_user created and added to sudo group."
+    else
+        print_status "User $new_user already exists."
+        usermod -aG sudo $new_user
+    fi
+    
+    # Copy script to user's home directory
+    cp "$0" "/home/$new_user/pterodactyl-installer.sh"
+    chown $new_user:$new_user "/home/$new_user/pterodactyl-installer.sh"
+    chmod +x "/home/$new_user/pterodactyl-installer.sh"
+    
+    print_status "Script copied to /home/$new_user/pterodactyl-installer.sh"
+    print_status "Switching to user $new_user and running the script..."
+    
+    # Switch to the new user and run the script
+    su - $new_user -c "/home/$new_user/pterodactyl-installer.sh"
+    exit 0
 }
 
 # Function to check if user has sudo privileges
 check_sudo() {
+    if [[ "$RUNNING_AS_ROOT" == "true" ]]; then
+        return 0  # Root doesn't need sudo
+    fi
+    
     if ! sudo -l &>/dev/null; then
         print_error "Current user does not have sudo privileges."
+        print_status "Please add your user to the sudo group:"
+        print_status "  su - root"
+        print_status "  usermod -aG sudo $(whoami)"
+        print_status "  exit"
+        print_status "  # Then log out and log back in"
         exit 1
     fi
 }
@@ -62,24 +136,42 @@ check_ubuntu_version() {
 # Function to update system packages
 update_system() {
     print_status "Updating system packages..."
-    sudo apt update && sudo apt upgrade -y
-    sudo apt install -y curl wget gnupg2 software-properties-common apt-transport-https ca-certificates lsb-release
+    if [[ "$RUNNING_AS_ROOT" == "true" ]]; then
+        apt update && apt upgrade -y
+        apt install -y curl wget gnupg2 software-properties-common apt-transport-https ca-certificates lsb-release
+    else
+        sudo apt update && sudo apt upgrade -y
+        sudo apt install -y curl wget gnupg2 software-properties-common apt-transport-https ca-certificates lsb-release
+    fi
 }
 
 # Function to install required dependencies
 install_dependencies() {
     print_status "Installing required dependencies..."
-    sudo apt install -y php8.3 php8.3-{common,cli,gd,mysql,mbstring,bcmath,xml,fpm,curl,zip,intl,sqlite3,redis} \
-        mariadb-server nginx tar unzip git redis-server cron
+    if [[ "$RUNNING_AS_ROOT" == "true" ]]; then
+        apt install -y php8.3 php8.3-{common,cli,gd,mysql,mbstring,bcmath,xml,fpm,curl,zip,intl,sqlite3,redis} \
+            mariadb-server nginx tar unzip git redis-server cron
+    else
+        sudo apt install -y php8.3 php8.3-{common,cli,gd,mysql,mbstring,bcmath,xml,fpm,curl,zip,intl,sqlite3,redis} \
+            mariadb-server nginx tar unzip git redis-server cron
+    fi
 }
 
 # Function to configure MariaDB
 configure_mariadb() {
     print_status "Configuring MariaDB..."
-    sudo systemctl start mariadb
-    sudo systemctl enable mariadb
+    if [[ "$RUNNING_AS_ROOT" == "true" ]]; then
+        systemctl start mariadb
+        systemctl enable mariadb
+    else
+        sudo systemctl start mariadb
+        sudo systemctl enable mariadb
+        print_warning "Please run 'sudo mysql_secure_installation' after the script completes to secure MariaDB."
+    fi
     
-    print_warning "Please run 'sudo mysql_secure_installation' after the script completes to secure MariaDB."
+    if [[ "$RUNNING_AS_ROOT" == "true" ]]; then
+        print_warning "Please run 'mysql_secure_installation' after the script completes to secure MariaDB."
+    fi
     
     # Create database and user for Pterodactyl
     echo -e "${CYAN}Please enter the following database information:${NC}"
@@ -92,12 +184,21 @@ configure_mariadb() {
     read -s -p "Database password: " db_password
     echo
     
-    sudo mysql -u root <<EOF
+    if [[ "$RUNNING_AS_ROOT" == "true" ]]; then
+        mysql -u root <<EOF
 CREATE DATABASE ${db_name};
 CREATE USER '${db_user}'@'127.0.0.1' IDENTIFIED BY '${db_password}';
 GRANT ALL PRIVILEGES ON ${db_name}.* TO '${db_user}'@'127.0.0.1';
 FLUSH PRIVILEGES;
 EOF
+    else
+        sudo mysql -u root <<EOF
+CREATE DATABASE ${db_name};
+CREATE USER '${db_user}'@'127.0.0.1' IDENTIFIED BY '${db_password}';
+GRANT ALL PRIVILEGES ON ${db_name}.* TO '${db_user}'@'127.0.0.1';
+FLUSH PRIVILEGES;
+EOF
+    fi
 
     print_status "Database created successfully!"
 }
@@ -105,7 +206,11 @@ EOF
 # Function to install Composer
 install_composer() {
     print_status "Installing Composer..."
-    curl -sS https://getcomposer.org/installer | sudo php -- --install-dir=/usr/local/bin --filename=composer
+    if [[ "$RUNNING_AS_ROOT" == "true" ]]; then
+        curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+    else
+        curl -sS https://getcomposer.org/installer | sudo php -- --install-dir=/usr/local/bin --filename=composer
+    fi
 }
 
 # Function to install Pterodactyl Panel
@@ -124,28 +229,54 @@ install_panel() {
     
     # Create directory and download panel
     print_status "Downloading Pterodactyl Panel..."
-    sudo mkdir -p /var/www/pterodactyl
-    cd /var/www/pterodactyl
-    
-    # Get latest version
-    PANEL_VERSION=$(curl -s https://api.github.com/repos/pterodactyl/panel/releases/latest | grep -Po '"tag_name": "\K.*?(?=")')
-    print_status "Installing Panel version: $PANEL_VERSION"
-    
-    sudo curl -Lo panel.tar.gz https://github.com/pterodactyl/panel/releases/latest/download/panel.tar.gz
-    sudo tar -xzf panel.tar.gz
-    sudo chmod -R 755 storage/* bootstrap/cache/
+    if [[ "$RUNNING_AS_ROOT" == "true" ]]; then
+        mkdir -p /var/www/pterodactyl
+        cd /var/www/pterodactyl
+        
+        # Get latest version
+        PANEL_VERSION=$(curl -s https://api.github.com/repos/pterodactyl/panel/releases/latest | grep -Po '"tag_name": "\K.*?(?=")')
+        print_status "Installing Panel version: $PANEL_VERSION"
+        
+        curl -Lo panel.tar.gz https://github.com/pterodactyl/panel/releases/latest/download/panel.tar.gz
+        tar -xzf panel.tar.gz
+        chmod -R 755 storage/* bootstrap/cache/
+    else
+        sudo mkdir -p /var/www/pterodactyl
+        cd /var/www/pterodactyl
+        
+        # Get latest version
+        PANEL_VERSION=$(curl -s https://api.github.com/repos/pterodactyl/panel/releases/latest | grep -Po '"tag_name": "\K.*?(?=")')
+        print_status "Installing Panel version: $PANEL_VERSION"
+        
+        sudo curl -Lo panel.tar.gz https://github.com/pterodactyl/panel/releases/latest/download/panel.tar.gz
+        sudo tar -xzf panel.tar.gz
+        sudo chmod -R 755 storage/* bootstrap/cache/
+    fi
     
     # Set permissions
-    sudo chown -R www-data:www-data /var/www/pterodactyl/*
+    if [[ "$RUNNING_AS_ROOT" == "true" ]]; then
+        chown -R www-data:www-data /var/www/pterodactyl/*
+    else
+        sudo chown -R www-data:www-data /var/www/pterodactyl/*
+    fi
     
     # Install dependencies
     print_status "Installing Panel dependencies..."
-    sudo -u www-data composer install --no-dev --optimize-autoloader
+    if [[ "$RUNNING_AS_ROOT" == "true" ]]; then
+        sudo -u www-data composer install --no-dev --optimize-autoloader
+    else
+        sudo -u www-data composer install --no-dev --optimize-autoloader
+    fi
     
     # Environment setup
     print_status "Setting up environment..."
-    sudo -u www-data cp .env.example .env
-    sudo -u www-data php artisan key:generate --force
+    if [[ "$RUNNING_AS_ROOT" == "true" ]]; then
+        sudo -u www-data cp .env.example .env
+        sudo -u www-data php artisan key:generate --force
+    else
+        sudo -u www-data cp .env.example .env
+        sudo -u www-data php artisan key:generate --force
+    fi
     
     # Configure environment file
     sudo -u www-data php artisan p:environment:setup \
@@ -181,7 +312,11 @@ install_panel() {
     
     # Set up crontab
     print_status "Setting up crontab..."
-    (sudo crontab -u www-data -l 2>/dev/null; echo "* * * * * php /var/www/pterodactyl/artisan schedule:run >> /dev/null 2>&1") | sudo crontab -u www-data -
+    if [[ "$RUNNING_AS_ROOT" == "true" ]]; then
+        (crontab -u www-data -l 2>/dev/null; echo "* * * * * php /var/www/pterodactyl/artisan schedule:run >> /dev/null 2>&1") | crontab -u www-data -
+    else
+        (sudo crontab -u www-data -l 2>/dev/null; echo "* * * * * php /var/www/pterodactyl/artisan schedule:run >> /dev/null 2>&1") | sudo crontab -u www-data -
+    fi
     
     # Configure Nginx
     configure_nginx_panel "$panel_domain"
@@ -195,7 +330,11 @@ configure_nginx_panel() {
     
     print_status "Configuring Nginx for Panel..."
     
-    sudo tee /etc/nginx/sites-available/pterodactyl.conf > /dev/null <<EOF
+    if [[ "$RUNNING_AS_ROOT" == "true" ]]; then
+        tee /etc/nginx/sites-available/pterodactyl.conf > /dev/null <<EOF
+    else
+        sudo tee /etc/nginx/sites-available/pterodactyl.conf > /dev/null <<EOF
+    fi
 server {
     listen 80;
     server_name $domain;
@@ -246,9 +385,15 @@ server {
     }
 }
 EOF
+    fi
 
-    sudo ln -sf /etc/nginx/sites-available/pterodactyl.conf /etc/nginx/sites-enabled/pterodactyl.conf
-    sudo systemctl reload nginx
+    if [[ "$RUNNING_AS_ROOT" == "true" ]]; then
+        ln -sf /etc/nginx/sites-available/pterodactyl.conf /etc/nginx/sites-enabled/pterodactyl.conf
+        systemctl reload nginx
+    else
+        sudo ln -sf /etc/nginx/sites-available/pterodactyl.conf /etc/nginx/sites-enabled/pterodactyl.conf
+        sudo systemctl reload nginx
+    fi
     
     print_warning "SSL certificate is not configured. Please install Let's Encrypt SSL after the installation:"
     print_warning "sudo apt install certbot python3-certbot-nginx"
@@ -259,25 +404,44 @@ EOF
 install_docker() {
     print_status "Installing Docker..."
     
-    # Remove old versions
-    sudo apt remove -y docker docker-engine docker.io containerd runc 2>/dev/null || true
-    
-    # Add Docker's official GPG key
-    curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
-    
-    # Add Docker repository
-    echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
-    
-    # Install Docker
-    sudo apt update
-    sudo apt install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin
-    
-    # Start and enable Docker
-    sudo systemctl start docker
-    sudo systemctl enable docker
-    
-    # Add current user to docker group
-    sudo usermod -aG docker $USER
+    if [[ "$RUNNING_AS_ROOT" == "true" ]]; then
+        # Remove old versions
+        apt remove -y docker docker-engine docker.io containerd runc 2>/dev/null || true
+        
+        # Add Docker's official GPG key
+        curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
+        
+        # Add Docker repository
+        echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null
+        
+        # Install Docker
+        apt update
+        apt install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin
+        
+        # Start and enable Docker
+        systemctl start docker
+        systemctl enable docker
+    else
+        # Remove old versions
+        sudo apt remove -y docker docker-engine docker.io containerd runc 2>/dev/null || true
+        
+        # Add Docker's official GPG key
+        curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
+        
+        # Add Docker repository
+        echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+        
+        # Install Docker
+        sudo apt update
+        sudo apt install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin
+        
+        # Start and enable Docker
+        sudo systemctl start docker
+        sudo systemctl enable docker
+        
+        # Add current user to docker group
+        sudo usermod -aG docker $USER
+    fi
     
     print_status "Docker installed successfully!"
 }
@@ -287,18 +451,32 @@ install_wings() {
     print_header "INSTALLING PTERODACTYL WINGS"
     
     print_status "Creating Wings directory..."
-    sudo mkdir -p /etc/pterodactyl
-    
-    # Download Wings
-    WINGS_VERSION=$(curl -s https://api.github.com/repos/pterodactyl/wings/releases/latest | grep -Po '"tag_name": "\K.*?(?=")')
-    print_status "Installing Wings version: $WINGS_VERSION"
-    
-    sudo curl -L -o /usr/local/bin/wings "https://github.com/pterodactyl/wings/releases/latest/download/wings_linux_$([[ "$(uname -m)" == "x86_64" ]] && echo "amd64" || echo "arm64")"
-    sudo chmod u+x /usr/local/bin/wings
-    
-    # Create systemd service
-    print_status "Creating Wings systemd service..."
-    sudo tee /etc/systemd/system/wings.service > /dev/null <<EOF
+    if [[ "$RUNNING_AS_ROOT" == "true" ]]; then
+        mkdir -p /etc/pterodactyl
+        
+        # Download Wings
+        WINGS_VERSION=$(curl -s https://api.github.com/repos/pterodactyl/wings/releases/latest | grep -Po '"tag_name": "\K.*?(?=")')
+        print_status "Installing Wings version: $WINGS_VERSION"
+        
+        curl -L -o /usr/local/bin/wings "https://github.com/pterodactyl/wings/releases/latest/download/wings_linux_$([[ "$(uname -m)" == "x86_64" ]] && echo "amd64" || echo "arm64")"
+        chmod u+x /usr/local/bin/wings
+        
+        # Create systemd service
+        print_status "Creating Wings systemd service..."
+        tee /etc/systemd/system/wings.service > /dev/null <<EOF
+    else
+        sudo mkdir -p /etc/pterodactyl
+        
+        # Download Wings
+        WINGS_VERSION=$(curl -s https://api.github.com/repos/pterodactyl/wings/releases/latest | grep -Po '"tag_name": "\K.*?(?=")')
+        print_status "Installing Wings version: $WINGS_VERSION"
+        
+        sudo curl -L -o /usr/local/bin/wings "https://github.com/pterodactyl/wings/releases/latest/download/wings_linux_$([[ "$(uname -m)" == "x86_64" ]] && echo "amd64" || echo "arm64")"
+        sudo chmod u+x /usr/local/bin/wings
+        
+        # Create systemd service
+        print_status "Creating Wings systemd service..."
+        sudo tee /etc/systemd/system/wings.service > /dev/null <<EOF
 [Unit]
 Description=Pterodactyl Wings Daemon
 After=docker.service
@@ -319,8 +497,13 @@ RestartSec=5s
 [Install]
 WantedBy=multi-user.target
 EOF
+    fi
 
-    sudo systemctl enable wings
+    if [[ "$RUNNING_AS_ROOT" == "true" ]]; then
+        systemctl enable wings
+    else
+        sudo systemctl enable wings
+    fi
     
     print_warning "Wings is installed but not configured yet."
     print_warning "You need to:"
@@ -335,28 +518,53 @@ EOF
 configure_firewall() {
     print_status "Configuring firewall..."
     
-    # Install UFW if not already installed
-    sudo apt install -y ufw
-    
-    # Configure firewall rules
-    sudo ufw default deny incoming
-    sudo ufw default allow outgoing
-    
-    # Allow SSH
-    sudo ufw allow ssh
-    
-    # Allow HTTP and HTTPS
-    sudo ufw allow 80
-    sudo ufw allow 443
-    
-    # Allow Wings ports (if Wings is being installed)
-    if [[ "$install_option" == "2" || "$install_option" == "3" ]]; then
-        sudo ufw allow 8080
-        sudo ufw allow 2022
+    if [[ "$RUNNING_AS_ROOT" == "true" ]]; then
+        # Install UFW if not already installed
+        apt install -y ufw
+        
+        # Configure firewall rules
+        ufw default deny incoming
+        ufw default allow outgoing
+        
+        # Allow SSH
+        ufw allow ssh
+        
+        # Allow HTTP and HTTPS
+        ufw allow 80
+        ufw allow 443
+        
+        # Allow Wings ports (if Wings is being installed)
+        if [[ "$install_option" == "2" || "$install_option" == "3" ]]; then
+            ufw allow 8080
+            ufw allow 2022
+        fi
+        
+        # Enable firewall
+        ufw --force enable
+    else
+        # Install UFW if not already installed
+        sudo apt install -y ufw
+        
+        # Configure firewall rules
+        sudo ufw default deny incoming
+        sudo ufw default allow outgoing
+        
+        # Allow SSH
+        sudo ufw allow ssh
+        
+        # Allow HTTP and HTTPS
+        sudo ufw allow 80
+        sudo ufw allow 443
+        
+        # Allow Wings ports (if Wings is being installed)
+        if [[ "$install_option" == "2" || "$install_option" == "3" ]]; then
+            sudo ufw allow 8080
+            sudo ufw allow 2022
+        fi
+        
+        # Enable firewall
+        sudo ufw --force enable
     fi
-    
-    # Enable firewall
-    sudo ufw --force enable
     
     print_status "Firewall configured successfully!"
 }
