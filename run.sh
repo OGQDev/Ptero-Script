@@ -181,14 +181,18 @@ install_panel() {
     tar -xzvf panel.tar.gz
     chmod -R 755 storage/* bootstrap/cache/
     
+    # Setup environment first
+    cp .env.example .env
+    
+    # Generate a temporary app key to avoid encryption errors during composer install
+    APP_KEY=$(php -r "echo 'base64:'.base64_encode(random_bytes(32));")
+    sed -i "s|APP_KEY=.*|APP_KEY=${APP_KEY}|g" .env
+    
     # Install composer dependencies
     composer install --no-dev --optimize-autoloader
     
-    # Generate application key
+    # Generate the final application key
     php artisan key:generate --force
-    
-    # Setup environment
-    cp .env.example .env
     
     # Configure environment
     DB_PASSWORD=$(cat /root/pterodactyl_db_password.txt)
