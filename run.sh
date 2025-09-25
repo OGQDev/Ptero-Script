@@ -188,13 +188,13 @@ install_panel() {
     # Create directory and download panel
     print_status "Downloading Pterodactyl Panel..."
     
-    # Check if directory exists and clean it up if needed
+    # Check if directory exists and clean it up completely
     if [[ -d "/var/www/pterodactyl" ]]; then
-        print_warning "Existing Pterodactyl installation found. Cleaning up..."
+        print_warning "Existing Pterodactyl installation found. Completely removing..."
         if [[ "$RUNNING_AS_ROOT" == "true" ]]; then
-            rm -rf /var/www/pterodactyl/*
+            rm -rf /var/www/pterodactyl
         else
-            sudo rm -rf /var/www/pterodactyl/*
+            sudo rm -rf /var/www/pterodactyl
         fi
     fi
     
@@ -239,7 +239,15 @@ install_panel() {
         sudo chmod -R 775 /var/www/pterodactyl/
     fi
     
-    # Environment setup (create .env file BEFORE composer install)
+    # Install dependencies FIRST (before any artisan commands)
+    print_status "Installing Panel dependencies..."
+    if [[ "$RUNNING_AS_ROOT" == "true" ]]; then
+        sudo -u www-data composer install --no-dev --no-scripts
+    else
+        sudo -u www-data composer install --no-dev --no-scripts
+    fi
+    
+    # Environment setup AFTER composer install (so vendor/autoload.php exists)
     print_status "Setting up environment..."
     if [[ "$RUNNING_AS_ROOT" == "true" ]]; then
         sudo -u www-data cp .env.example .env
@@ -251,6 +259,7 @@ install_panel() {
             exit 1
         fi
         sudo -u www-data php artisan key:generate --force
+        sudo -u www-data composer dump-autoload --optimize
     else
         sudo -u www-data cp .env.example .env
         # Verify .env file was created
@@ -261,15 +270,6 @@ install_panel() {
             exit 1
         fi
         sudo -u www-data php artisan key:generate --force
-    fi
-    
-    # Install dependencies AFTER .env is created (skip autoload dump to avoid artisan calls)
-    print_status "Installing Panel dependencies..."
-    if [[ "$RUNNING_AS_ROOT" == "true" ]]; then
-        sudo -u www-data composer install --no-dev --no-scripts
-        sudo -u www-data composer dump-autoload --optimize
-    else
-        sudo -u www-data composer install --no-dev --no-scripts
         sudo -u www-data composer dump-autoload --optimize
     fi
     
