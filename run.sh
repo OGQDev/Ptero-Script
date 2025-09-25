@@ -370,7 +370,13 @@ EOF
     # Test Nginx configuration and handle errors
     if nginx -t; then
         print_status "Nginx configuration test passed"
-        systemctl reload nginx
+        
+        # Start nginx if it's not running, otherwise reload
+        if systemctl is-active --quiet nginx; then
+            systemctl reload nginx
+        else
+            systemctl start nginx
+        fi
     else
         print_error "Nginx configuration test failed. Checking for issues..."
         
@@ -403,7 +409,7 @@ EOF
         
         if nginx -t; then
             print_status "Basic Nginx configuration working"
-            systemctl reload nginx
+            systemctl start nginx
         else
             print_error "Critical Nginx configuration error. Please check manually."
             exit 1
@@ -595,9 +601,6 @@ main() {
         systemctl stop nginx 2>/dev/null || true
         
         configure_nginx_panel
-        
-        # Start nginx
-        systemctl start nginx
         
         # Ask about SSL
         read -p "Do you want to install SSL certificate with Let's Encrypt? (y/n): " INSTALL_SSL_CHOICE
