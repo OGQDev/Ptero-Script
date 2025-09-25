@@ -187,6 +187,17 @@ install_panel() {
     
     # Create directory and download panel
     print_status "Downloading Pterodactyl Panel..."
+    
+    # Check if directory exists and clean it up if needed
+    if [[ -d "/var/www/pterodactyl" ]]; then
+        print_warning "Existing Pterodactyl installation found. Cleaning up..."
+        if [[ "$RUNNING_AS_ROOT" == "true" ]]; then
+            rm -rf /var/www/pterodactyl/*
+        else
+            sudo rm -rf /var/www/pterodactyl/*
+        fi
+    fi
+    
     if [[ "$RUNNING_AS_ROOT" == "true" ]]; then
         mkdir -p /var/www/pterodactyl
         cd /var/www/pterodactyl
@@ -228,7 +239,7 @@ install_panel() {
         sudo chmod -R 775 /var/www/pterodactyl/
     fi
     
-    # Environment setup (create .env file first)
+    # Environment setup (create .env file BEFORE composer install)
     print_status "Setting up environment..."
     if [[ "$RUNNING_AS_ROOT" == "true" ]]; then
         sudo -u www-data cp .env.example .env
@@ -238,7 +249,7 @@ install_panel() {
         sudo -u www-data php artisan key:generate --force
     fi
     
-    # Install dependencies
+    # Install dependencies AFTER .env is created
     print_status "Installing Panel dependencies..."
     if [[ "$RUNNING_AS_ROOT" == "true" ]]; then
         sudo -u www-data composer install --no-dev --optimize-autoloader
