@@ -228,6 +228,16 @@ install_panel() {
         sudo chmod -R 775 /var/www/pterodactyl/
     fi
     
+    # Environment setup (create .env file first)
+    print_status "Setting up environment..."
+    if [[ "$RUNNING_AS_ROOT" == "true" ]]; then
+        sudo -u www-data cp .env.example .env
+        sudo -u www-data php artisan key:generate --force
+    else
+        sudo -u www-data cp .env.example .env
+        sudo -u www-data php artisan key:generate --force
+    fi
+    
     # Install dependencies
     print_status "Installing Panel dependencies..."
     if [[ "$RUNNING_AS_ROOT" == "true" ]]; then
@@ -236,7 +246,7 @@ install_panel() {
         sudo -u www-data composer install --no-dev --optimize-autoloader
     fi
     
-    # Fix permissions after composer install
+    # Fix permissions after composer install and .env creation
     print_status "Setting final permissions..."
     if [[ "$RUNNING_AS_ROOT" == "true" ]]; then
         chown -R www-data:www-data /var/www/pterodactyl/
@@ -248,16 +258,6 @@ install_panel() {
         sudo chmod -R 755 /var/www/pterodactyl/
         sudo chmod -R 775 /var/www/pterodactyl/storage/ /var/www/pterodactyl/bootstrap/cache/
         sudo chmod 644 /var/www/pterodactyl/.env
-    fi
-    
-    # Environment setup
-    print_status "Setting up environment..."
-    if [[ "$RUNNING_AS_ROOT" == "true" ]]; then
-        sudo -u www-data cp .env.example .env
-        sudo -u www-data php artisan key:generate --force
-    else
-        sudo -u www-data cp .env.example .env
-        sudo -u www-data php artisan key:generate --force
     fi
     
     # Configure environment file
